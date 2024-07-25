@@ -1,7 +1,7 @@
 BARK: BASELINE
 =========
 
-BASELINE configuration of a Linux server with limited assumptions on purpose.
+BASELINE configuration of a Linux server with sane defaults.
 
 Assumes you want to install a default package set, configure NTP, and setup 
 initial firewall rules.
@@ -9,7 +9,12 @@ initial firewall rules.
 Requirements
 ------------
 
-Currently only supports Debian/Ubuntu machines running `apt` and `ufw`.
+All roles in the Bitmotive Ansible Role Kit are configuration driven.
+
+Customize this role by providing environment variables in either your
+shell environment, host specific in group_vars/, or at the CLI when
+prompted at runtime. 
+
 
 Role Variables
 --------------
@@ -24,10 +29,7 @@ package manager.
 Dependencies
 ------------
 
-All Ansible roles are configuration driven. Provide inventory specific 
-variables in group_vars/, include them in the shell's environment, or 
-provide them when prompted by the role at execution time.
-
+Currently dependent on Debian/Ubuntu due to reliance on `apt` and `ufw`. 
 
 License
 -------
@@ -37,4 +39,5 @@ MIT
 Author Information
 ------------------
 
-A Bitmotive Project: Fueled by Caffeine, Written with Purpose
+A Bitmotive Project: Build. Incubate. Train.
+https://bitmotive.com
