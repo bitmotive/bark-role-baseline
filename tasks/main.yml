@@ -1,0 +1,98 @@
+---
+# ROLE: BASELINE
+#
+# DESCRIPTION:
+# This role sets up the baseline configuration for a server.
+# It includes tasks for updating apt cache, upgrading all packages,
+# installing baseline packages, setting up ufw, setting the timezone, and
+# ensuring NTP is installed and running.
+
+
+###############################################################################
+################### VARIABLE INITIALIZATION & TASK SETUP ######################
+###############################################################################
+
+
+# BASELINE_REQUIRED_PACKAGES
+# Collect a string of required packages, separated by commas
+- name: BASELINE_REQUIRED_PACKAGES set fact from env if possible
+  set_fact:
+    BASELINE_REQUIRED_PACKAGES: "{{ lookup('env', 'BASELINE_REQUIRED_PACKAGES') | default('') | trim | split(',') }}"
+  when: lookup('env', 'BASELINE_REQUIRED_PACKAGES') | default('', true) | trim != ''
+- name: BASELINE_REQUIRED_PACKAGES prompt user input if unset
+  pause:
+    prompt: "SET BASELINE_REQUIRED_PACKAGES"
+    echo: yes
+  register: input
+  when: BASELINE_REQUIRED_PACKAGES is not defined
+- name: Set BASELINE_REQUIRED_PACKAGES fact from user input
+  set_fact:
+    BASELINE_REQUIRED_PACKAGES: "{{ input.user_input | default('') | trim | split(',') }}"
+  when: BASELINE_REQUIRED_PACKAGES is not defined
+
+
+###############################################################################
+############################ ROLE IMPLEMENTATION ##############################
+###############################################################################
+
+
+# Step 1: Install baseline packages and update/upgrade software
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+  become: yes
+
+- name: Install baseline packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ BASELINE_REQUIRED_PACKAGES }}"
+  become: yes
+
+# Step 2: Ensure the firewall is configured
+
+- name: Ensure ufw is installed
+  apt:
+    name: ufw
+    state: present
+  become: yes
+
+- name: Set up basic ufw rules
+  ufw:
+    rule: allow
+    name: "{{ item }}"
+    state: enabled
+  with_items:
+    - OpenSSH
+  become: yes
+
+- name: Enable ufw
+  ufw:
+    state: enabled
+  become: yes
+
+# Step 3: Set the timezone and enable NTP
+
+- name: Set timezone to UTC
+  timezone:
+    name: America/New_York
+  become: yes
+
+- name: Ensure NTP is installed and running
+  apt:
+    name: chrony
+    state: present
+  become: yes
+
+- name: Start and enable NTP service
+  service:
+    name: chrony
+    state: started
+    enabled: yes
+  become: yes
